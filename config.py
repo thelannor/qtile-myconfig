@@ -13,22 +13,33 @@ from libqtile.command import lazy
 from libqtile.widget import base
 
 from lib import mod, getTerminal, getFileManager, getWebBrowser
-from lib.autostart import autostart
+from lib.autostart import autostart, _popen
 
 qtile_userhome_path = os.path.dirname(__file__)
 qtile_share = os.path.join(qtile_userhome_path, 'share')
 qtile_default_feh_bg = os.path.join(qtile_share, 'background', 'default')
 
-autostart([
+_applications = [
     "setxkbmap -layout 'us,ru' -option 'grp:alt_shift_toggle' 2>/dev/null",
     "feh --bg-scale {0!r}".format(qtile_default_feh_bg),
-])
-del qtile_default_feh_bg
+    "dropbox start",
+]
+
+_fp_distr = _popen('lsb_release -d').stdout
+if _fp_distr.read().find('Ubuntu'):
+    _applications.insert(0, "pacmd set-sink-mute 0 true")
+_fp_distr.close()
+del _fp_distr
+
+autostart(check_proc=True, apps=_applications)
+del _applications, qtile_default_feh_bg
 
 keys = [
     Key([mod], "Return", lazy.spawn('gmrun')),
     Key([mod], "F1", lazy.spawn(getFileManager(''))),
-    Key([mod], "F2", lazy.spawn(getTerminal(''))),
+
+    Key([mod], "F2", lazy.spawn('lxterminal')),
+    Key([mod, "shift"], "F2", lazy.spawn(getTerminal(''))),
 
     Key([mod], "F3", lazy.spawn(getWebBrowser(''))),
 
@@ -53,6 +64,8 @@ keys = [
     Key([mod], "f", lazy.window.toggle_floating()),
 
     Key([mod, "shift"], "x", lazy.window.kill()),
+
+    Key([mod, "shift"], "m", lazy.spawn("pacmd set-sink-mute 0 false")),
 
     Key([mod, "shift"], "d", lazy.spawn('rdesktop 192.168.1.100:9000')),
 ]
