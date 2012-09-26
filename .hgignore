@@ -1,0 +1,10 @@
+syntax: glob
+
+*~
+~*
+
+.git/*
+
+*.py[cod]
+*.sw[po]
+
